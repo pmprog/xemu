@@ -48,7 +48,8 @@ if [ $# -lt 1 ]; then
 	echo "[DISCORD] ERROR: Missing list of brances" >&2
 	exit 1
 fi
-NOTIFY_BRANCHES=",${1},"
+echo "[DISCORD] Notification for ${BUILD_ARCH} with allowed notification list for branches: ${1}"
+NOTIFY_BRANCHES="${1}"
 
 shift
 
@@ -90,8 +91,8 @@ if [ "$XEMU_VERSION" = "" ]; then
 fi
 XEMU_VERSION="$XEMU_VERSION/$TRAVIS_BRANCH"
 # ---------------------------------------------------------------------------------------------
-if ! echo "$NOTIFY_BRANCHES" | grep -q ",$TRAVIS_BRANCH," ; then
-	echo "[DISCORD] This branch (${TRAVIS_BRANCH}) was not configured to trigger the listed webhooks"
+if ! echo ",$NOTIFY_BRANCHES," | grep -q ",$TRAVIS_BRANCH," ; then
+	echo "[DISCORD] REJECT: This branch (${TRAVIS_BRANCH}) was not in the configured branches to notify. Allowed branches: ${NOTIFY_BRANCHES}"
 	exit 0
 fi
 # ---------------------------------------------------------------------------------------------
@@ -131,7 +132,7 @@ fi
 TIMESTAMP=$(date -u +%FT%TZ)
 
 
-MSG=":desktop:  New Xemu build version **${XEMU_VERSION}** for **${BUILD_ARCH}** is now ***[on-line](https://lgblgblgb.github.io/xemu/)!***"
+MSG=":desktop:  New Xemu build version **${XEMU_VERSION}** for **${BUILD_ARCH}** is now ***[on-line](<https://lgblgblgb.github.io/xemu/>)!***"
 # Branch based decisions
 MSG="${MSG} :scientist: "
 if [ "$TRAVIS_BRANCH" == "master" ]; then
@@ -144,9 +145,9 @@ else
 	MSG="${MSG}This is **secret** (branch: **${TRAVIS_BRANCH}**) build, ~~you don't want to even know about~~ ... errr ... _you want to be **extremely** careful with_."
 fi 
 # Details about the build
-MSG="$MSG :zap: See git commit [**\`${TRAVIS_COMMIT:0:7}\`**](https://github.com/${TRAVIS_REPO_SLUG}/commit/${TRAVIS_COMMIT})"
-if [ "$TRAVIS_BUILD_WEB_URL" != "" ]; then
-	MSG="$MSG and the [build log](${TRAVIS_BUILD_WEB_URL})"
+MSG="$MSG :zap: See git commit [**\`${TRAVIS_COMMIT:0:7}\`**](<https://github.com/${TRAVIS_REPO_SLUG}/commit/${TRAVIS_COMMIT}>)"
+if [ "$TRAVIS_JOB_WEB_URL" != "" ]; then
+	MSG="$MSG and the [build log](<${TRAVIS_JOB_WEB_URL}>)"
 fi
 MSG="${MSG}. :calendar: _${BOT_NAME_FUNNY} @ ${TIMESTAMP}_"
 
