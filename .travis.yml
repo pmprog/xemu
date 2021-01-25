@@ -198,6 +198,9 @@ matrix:
             - dev
             - vic
             - hmw
+            - discord
+      after_deploy:
+        - build/deploy/discord-webhook.sh success $DISCORD_XEMU_SERVER_TEST_CHANNEL_WEBHOOK || true
 
 env:
   global:
