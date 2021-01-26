@@ -8,6 +8,8 @@ BOT_NAME_FUNNY="XEMU (body-)Builder"
 #BOT_AVATAR="https://travis-ci.org/images/logos/TravisCI-Mascot-1.png"
 BOT_AVATAR="https://lgblgblgb.github.io/xemu/images/xemu-48x48.png"
 
+echo "[DISCORD] Starting ${BOT_NAME} discord trigger with parameter $1"
+
 case $1 in
 	"building" )
 		EMBED_COLOR=15105570
@@ -65,10 +67,18 @@ fi
 # Use GITHUB workflows to get information instead, if available
 if [ "$TRAVIS_BRANCH" == "" -a "$GITHUB_REF" != "" ]; then
 	TRAVIS_BRANCH="$(echo $GITHUB_REF | awk -F/ '{ print $NF }')"
+	BUILDER_CI="Github"
 fi
 # If either of those, try to use local parameters
 if [ "$TRAVIS_COMMIT" == "" ]; then
 	TRAVIS_COMMIT="$(git log -1 --pretty="%H")"
+	if [ "$BUILDER_CI" == "" ]; then
+		BUILDER_CI="Unknown"
+	fi
+else
+	if [ "$BUILDER_CI" == "" ]; then
+		BUILDER_CI="Travis"
+	fi
 fi
 if [ "$TRAVIS_BRANCH" == "" ]; then
 	TRAVIS_BRANCH="$(git branch | awk 'BEGIN { s = "UNKNOWN" } $1 == "*" { s = $2 } END { print s }')"
@@ -80,9 +90,7 @@ if [ "$TRAVIS_REPO_SLUG" == "" ]; then
 	# Ehmm, kind of lame ...
 	TRAVIS_REPO_SLUG="$(git config --get remote.origin.url | egrep -o '[^/]+/[^/]+$' | sed 's/\.git$//')"
 fi
-#if [ "$TRAVIS_BUILD_WEB_URL" == "" ]; then
-#	TRAVIS_BUILD_WEB_URL="https://lgblgblgb.github.io/xemu/"
-#fi
+
 # ---------------------------------------------------------------------------------------------
 cd `dirname $0`/../..
 XEMU_VERSION="$(cat build/objs/cdate.data)"
@@ -95,6 +103,7 @@ if ! echo ",$NOTIFY_BRANCHES," | grep -q ",$TRAVIS_BRANCH," ; then
 	echo "[DISCORD] REJECT: This branch (${TRAVIS_BRANCH}) was not in the configured branches to notify. Allowed branches: ${NOTIFY_BRANCHES}"
 	exit 0
 fi
+echo "[DISCORD] current branch is ${TRAVIS_BRANCH}"
 # ---------------------------------------------------------------------------------------------
 # End of madness
 
@@ -140,15 +149,16 @@ if [ "$TRAVIS_BRANCH" == "master" ]; then
 elif [ "$TRAVIS_BRANCH" == "next" ]; then
 	MSG="${MSG}This is next/**to-be-stable** with possible problems (branch: **${TRAVIS_BRANCH}**) build, so _you have been warned_, but you're more than welcome if you want to _help testing Xemu by using this branch_."
 elif [ "$TRAVIS_BRANCH" == "dev" ]; then
-	MSG="${MSG}This is **development** (branch: **${TRAVIS_BRANCH}**) build, ~~it may overclock your robot vacuum cleaner~~, or _whatever_."
+	MSG="${MSG}This is **development** (branch: **${TRAVIS_BRANCH}**) build, ~~it may overclock and destroy your robot vacuum cleaner~~, or _whatever_."
 else
-	MSG="${MSG}This is **secret** (branch: **${TRAVIS_BRANCH}**) build, ~~you don't want to even know about~~ ... errr ... _you want to be **extremely** careful with_."
+	MSG="${MSG}This is \"**secret**\" not-for-general-use (branch: **${TRAVIS_BRANCH}**) build, ~~you don't want to even know about~~ ... errr ... _you want to be **extremely** careful with_."
 fi 
 # Details about the build
 MSG="$MSG :zap: See git commit [**\`${TRAVIS_COMMIT:0:7}\`**](<https://github.com/${TRAVIS_REPO_SLUG}/commit/${TRAVIS_COMMIT}>)"
 if [ "$TRAVIS_JOB_WEB_URL" != "" ]; then
 	MSG="$MSG and the [build log](<${TRAVIS_JOB_WEB_URL}>)"
 fi
+MSG="${MSG}, built by ${BUILDER_CI}-CI"
 MSG="${MSG}. :calendar: _${BOT_NAME_FUNNY} @ ${TIMESTAMP}_"
 
 
@@ -161,10 +171,10 @@ WEBHOOK_DATA='{
 #exit 0
 
 for ARG in "$@"; do
-	echo -e "[DISCORD] Sending webhook to Discord ... "
+	echo -e "[DISCORD] Triggering Discord's webhook ... "
 
 	(curl --fail --progress-bar -A "TravisCI-Webhook" -H Content-Type:application/json -H X-Author:Xemu -d "${WEBHOOK_DATA//	/ }" "$ARG" \
-	&& echo -e "[DISCORD] Successfully sent the webhook :-)") || echo -e "[DISCORD] Unable to send webhook :-("
+	&& echo -e "[DISCORD] Successfully sent :-) The end.") || echo -e "[DISCORD] Unable to send :-( The end."
 done
 
 exit 0
