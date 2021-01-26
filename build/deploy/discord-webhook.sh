@@ -8,7 +8,13 @@ BOT_NAME_FUNNY="XEMU (body-)Builder"
 #BOT_AVATAR="https://travis-ci.org/images/logos/TravisCI-Mascot-1.png"
 BOT_AVATAR="https://lgblgblgb.github.io/xemu/images/xemu-48x48.png"
 
-echo "[DISCORD] Starting ${BOT_NAME} discord trigger with parameter $1"
+cd `dirname $0`/../.. || exit 1
+XEMU_VERSION="$(cat build/objs/cdate.data)"
+if [ "$XEMU_VERSION" = "" ]; then
+	XEMU_VERSION="UNKNOWN"
+fi
+
+echo "[DISCORD] Starting ${BOT_NAME} discord trigger with parameter $1 for Xemu build ${XEMU_VERSION} at directory `pwd` on host `hostname`"
 
 case $1 in
 	"building" )
@@ -92,11 +98,6 @@ if [ "$TRAVIS_REPO_SLUG" == "" ]; then
 fi
 
 # ---------------------------------------------------------------------------------------------
-cd `dirname $0`/../..
-XEMU_VERSION="$(cat build/objs/cdate.data)"
-if [ "$XEMU_VERSION" = "" ]; then
-	XEMU_VERSION="UNKNOWN"
-fi
 XEMU_VERSION="$XEMU_VERSION/$TRAVIS_BRANCH"
 # ---------------------------------------------------------------------------------------------
 if ! echo ",$NOTIFY_BRANCHES," | grep -q ",$TRAVIS_BRANCH," ; then
@@ -149,9 +150,9 @@ if [ "$TRAVIS_BRANCH" == "master" ]; then
 elif [ "$TRAVIS_BRANCH" == "next" ]; then
 	MSG="${MSG}This is next/**to-be-stable** with possible problems (branch: **${TRAVIS_BRANCH}**) build, so _you have been warned_, but you're more than welcome if you want to _help testing Xemu by using this branch_."
 elif [ "$TRAVIS_BRANCH" == "dev" ]; then
-	MSG="${MSG}This is **development** (branch: **${TRAVIS_BRANCH}**) build, ~~it may overclock and destroy your robot vacuum cleaner~~, or _whatever_."
+	MSG="${MSG}This is **development** (branch: **${TRAVIS_BRANCH}**) build, it may ~~overclock and kill your robot vacuum cleaner~~ _won't work at all_."
 else
-	MSG="${MSG}This is \"**secret**\" not-for-general-use (branch: **${TRAVIS_BRANCH}**) build, ~~you don't want to even know about~~ ... errr ... _you want to be **extremely** careful with_."
+	MSG="${MSG}This is \"**secret**\" not-for-general-use (branch: **${TRAVIS_BRANCH}**) build, ~~you don't want to even know about~~ _you want to be **extremely** careful with_."
 fi 
 # Details about the build
 MSG="$MSG :zap: See git commit [**\`${TRAVIS_COMMIT:0:7}\`**](<https://github.com/${TRAVIS_REPO_SLUG}/commit/${TRAVIS_COMMIT}>)"
