@@ -152,7 +152,7 @@ elif [ "$TRAVIS_BRANCH" == "next" ]; then
 elif [ "$TRAVIS_BRANCH" == "dev" ]; then
 	MSG="${MSG}This is **development** (branch: **${TRAVIS_BRANCH}**) build, it may ~~overclock and kill your robot vacuum cleaner~~ _won't work at all_."
 else
-	MSG="${MSG}This is \"**secret**\" not-for-general-use (branch: **${TRAVIS_BRANCH}**) build, ~~you don't want to even know about~~ _you want to be **extremely** careful with_."
+	MSG="${MSG}This is \\\"**secret**\\\" not-for-general-use (branch: **${TRAVIS_BRANCH}**) build, ~~you don't want to even know about~~ _you want to be **extremely** careful with_."
 fi 
 # Details about the build
 MSG="$MSG :zap: See git commit [**\`${TRAVIS_COMMIT:0:7}\`**](<https://github.com/${TRAVIS_REPO_SLUG}/commit/${TRAVIS_COMMIT}>)"
@@ -169,6 +169,7 @@ WEBHOOK_DATA='{
 	"content": "'$MSG'"
 }'
 
+#echo $WEBHOOK_DATA
 #exit 0
 
 for ARG in "$@"; do
