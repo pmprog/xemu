@@ -78,7 +78,7 @@ matrix:
             - vic
             - hmw
       after_deploy:
-        - build/deploy/discord-webhook.sh success "Ubuntu Linux DEB" master,next,dev,hmw DISCORD_XEMU_SERVER_TEST_CHANNEL_WEBHOOK || true
+            - build/deploy/discord-webhook.sh success "Ubuntu Linux DEB" master,next,dev,hmw:DISCORD_XEMU_SERVER_TEST_CHANNEL_WEBHOOK || true
     - name: Windows cross-compilation on Linux
       os: linux
       addons:
@@ -152,7 +152,7 @@ matrix:
             - vic
             - hmw
       after_deploy:
-        - build/deploy/discord-webhook.sh success "Windows" master,next,dev,hmw DISCORD_XEMU_SERVER_TEST_CHANNEL_WEBHOOK || true
+            - build/deploy/discord-webhook.sh success "Windows" master,next,dev,hmw:DISCORD_XEMU_SERVER_TEST_CHANNEL_WEBHOOK || true
     - name: MacOS native compilation
       os: osx
       osx_image: xcode11
@@ -205,8 +205,7 @@ matrix:
             - hmw
             - discord
       after_deploy:
-        - build/deploy/discord-webhook.sh success "MacOS(x86)" master,next,dev,hmw,discord DISCORD_XEMU_SERVER_TEST_CHANNEL_WEBHOOK || true
-        - build/deploy/discord-webhook.sh success "MacOS(x86)" master DISCORD_XEMU_SERVER_TEST_CHANNEL_WEBHOOK || true
+            - build/deploy/discord-webhook.sh success "MacOS(x86)" master,next,dev,hmw,discord:DISCORD_XEMU_SERVER_TEST_CHANNEL_WEBHOOK master:DISCORD_XEMU_SERVER_TEST_CHANNEL_WEBHOOK discord:DISCORD_XEMU_SERVER_TEST_CHANNEL_WEBHOOK || true
 
 env:
   global:

@@ -1,20 +1,26 @@
 #!/bin/bash
-# This file has been originally downloaded from https://github.com/DiscordHooks/travis-ci-discord-webhook
+# ------------------------------------------------------------------------------------------------------------------------------------------------
+# The original file has been downloaded from https://github.com/DiscordHooks/travis-ci-discord-webhook
 # Copyright: (C) 2017 Sankarsan Kampa, according to the MIT license: https://github.com/DiscordHooks/travis-ci-discord-webhook/blob/master/LICENSE
-# Also, this file has been modified by me for fitting to my needs in the Xemu project: (C)2021 Gabor Lenart (aka LGB)
+# ------------------------------------------------------------------------------------------------------------------------------------------------
+# Also, this file has been HEAVILY modified by me for fitting to my needs in the Xemu project: (C)2021 Gabor Lenart (aka LGB)
+# ------------------------------------------------------------------------------------------------------------------------------------------------
 
 BOT_NAME="XEMU Builder"
 BOT_NAME_FUNNY="XEMU (body-)Builder"
 #BOT_AVATAR="https://travis-ci.org/images/logos/TravisCI-Mascot-1.png"
 BOT_AVATAR="https://lgblgblgb.github.io/xemu/images/xemu-48x48.png"
 
+echo "[DISCORD] Starting ${BOT_NAME} discord trigger with parameter $1 in directory `pwd` on host `hostname`"
+
 cd `dirname $0`/../.. || exit 1
 XEMU_VERSION="$(cat build/objs/cdate.data)"
 if [ "$XEMU_VERSION" = "" ]; then
-	XEMU_VERSION="UNKNOWN"
+	echo "[DISCORD] ERROR: no build cdate info? File: build/objs/cdate.data" >&2
+	exit 1
 fi
 
-echo "[DISCORD] Starting ${BOT_NAME} discord trigger with parameter $1 for Xemu build ${XEMU_VERSION} at directory `pwd` on host `hostname`"
+echo "[DISCORD] XEMU version (cdate) is ${XEMU_VERSION}"
 
 case $1 in
 	"building" )
@@ -53,16 +59,7 @@ BUILD_ARCH="$1"
 shift
 
 if [ $# -lt 1 ]; then
-	echo "[DISCORD] ERROR: Missing list of brances" >&2
-	exit 1
-fi
-echo "[DISCORD] Notification for ${BUILD_ARCH} with allowed notification list for branches: ${1}"
-NOTIFY_BRANCHES="${1}"
-
-shift
-
-if [ $# -lt 1 ]; then
-	echo "[DISCORD] ERROR: Missing webhook URL(s)" >&2
+	echo "[DISCORD] ERROR: Missing branch(es):webhook-variable specification(s)" >&2
 	exit 1
 fi
 
@@ -96,14 +93,8 @@ if [ "$TRAVIS_REPO_SLUG" == "" ]; then
 	# Ehmm, kind of lame ...
 	TRAVIS_REPO_SLUG="$(git config --get remote.origin.url | egrep -o '[^/]+/[^/]+$' | sed 's/\.git$//')"
 fi
-
 # ---------------------------------------------------------------------------------------------
 XEMU_VERSION="$XEMU_VERSION/$TRAVIS_BRANCH"
-# ---------------------------------------------------------------------------------------------
-if ! echo ",$NOTIFY_BRANCHES," | grep -q ",$TRAVIS_BRANCH," ; then
-	echo "[DISCORD] REJECT: This branch (${TRAVIS_BRANCH}) was not in the configured branches to notify. Allowed branches: ${NOTIFY_BRANCHES}"
-	exit 0
-fi
 echo "[DISCORD] current branch is ${TRAVIS_BRANCH}"
 # ---------------------------------------------------------------------------------------------
 # End of madness
@@ -173,9 +164,24 @@ WEBHOOK_DATA='{
 #exit 0
 
 for ARG in "$@"; do
-	echo -e "[DISCORD] Triggering Discord's webhook according environment variable of $ARG ... "
-
-	(curl --fail --progress-bar -A "TravisCI-Webhook" -H Content-Type:application/json -H X-Author:Xemu -d "${WEBHOOK_DATA//	/ }" "${!ARG}" \
+	VALID_BRANCHES="$(echo "$ARG" | cut -d':' -f1)"
+	WEBHOOK_URL_VAR="$(echo "$ARG" | cut -d':' -f2)"
+	echo "LGB allow-list=(${VALID_BRANCHES}) var-name=(${WEBHOOK_URL_VAR})"
+	if [ "$VALID_BRANCHES" == "" -o "$WEBHOOK_URL_VAR" == "" -o "${!WEBHOOK_URL_VAR}" == "" -o "$WEBHOOK_URL_VAR" == "$VALID_BRANCHES" ]; then
+		echo "[DISCORD] ERROR: invalid specification for branch(es):webhook_url_var part. Skipping this one."
+		continue
+	fi
+	if [ "$VALID_BRANCHES" == "ANY" ]; then
+		echo "[DISCORD] 'ANY' was specified for branch-list, treating as an always OK, not checking branch now."
+	else
+		if ! echo ",$VALID_BRANCHES," | grep -q ",$TRAVIS_BRANCH," ; then
+			echo "[DISCORD] REJECT: This branch (${TRAVIS_BRANCH}) was not in the allow-list (${VALID_BRANCHES}) for this WEBHOOK (${WEBHOOK_URL_VAR})."
+			continue
+		fi
+		echo "[DISCORD] branch (${TRAVIS_BRANCH}) was accepted according the allow-list (${VALID_BRANCHES})"
+	fi
+	echo "[DISCORD] Triggering Discord's webhook ${WEBHOOK_URL_VAR} for branch ${TRAVIS_BRANCH} according to list of ${VALID_BRANCHES} ..."
+	(curl --fail --progress-bar -A "TravisCI-Webhook" -H Content-Type:application/json -H X-Author:Xemu -d "${WEBHOOK_DATA//	/ }" "${!WEBHOOK_URL_VAR}" \
 	&& echo -e "[DISCORD] Successfully sent :-) The end.") || echo -e "[DISCORD] Unable to send :-( The end."
 done
 
