@@ -173,9 +173,9 @@ WEBHOOK_DATA='{
 #exit 0
 
 for ARG in "$@"; do
-	echo -e "[DISCORD] Triggering Discord's webhook ... "
+	echo -e "[DISCORD] Triggering Discord's webhook according environment variable of $ARG ... "
 
-	(curl --fail --progress-bar -A "TravisCI-Webhook" -H Content-Type:application/json -H X-Author:Xemu -d "${WEBHOOK_DATA//	/ }" "$ARG" \
+	(curl --fail --progress-bar -A "TravisCI-Webhook" -H Content-Type:application/json -H X-Author:Xemu -d "${WEBHOOK_DATA//	/ }" "${!ARG}" \
 	&& echo -e "[DISCORD] Successfully sent :-) The end.") || echo -e "[DISCORD] Unable to send :-( The end."
 done
 

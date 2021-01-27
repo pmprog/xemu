@@ -1,6 +1,6 @@
 #!/bin/bash
 # A very lame NSIS installer stuff, Windows/NSI expert is wanted ...
-# (C)2018-2020 LGB Gabor Lenart
+# (C)2018-2021 LGB Gabor Lenart
 
 cd `dirname $0` || exit 1
 echo "$0: current directory: `pwd`"
@@ -38,7 +38,11 @@ done
 
 cp xemu.ico bin/xemu.ico
 
-#wine ~/.wine/drive_c/Program\ Files\ \(x86\)/NSIS/makensis.exe /D`echo $1 | tr 'a-z' 'A-Z'` /DSDL2DLL=`basename $dll` /DEXENAME=$installer /DARCH=$1 /DXEMUVER=`date '+%Y.%m.%d.%H%M'` /DVERSIONMAJOR=0 /DVERSIONMINOR=`date '+%Y%m%d%H%M'` /DVERSIONBUILD=0 /DINSTALLSIZE=$((size/1024)) xemu.nsi || exit 1
+echo "*** makensis version: `makensis -VERSION`"
+echo "*** makensis hdrinfo: `makensis -HDRINFO`"
+
+echo "*** >>> CALLING NSIS (makensis) NOW <<< ***"
+
 makensis -D`echo $1 | tr 'a-z' 'A-Z'` -DSDL2DLL=`basename $dll` -DEXENAME=$installer -DARCH=$1 -DXEMUVER=`date '+%Y.%m.%d.%H%M'` -DVERSIONMAJOR=0 -DVERSIONMINOR=`date '+%Y%m%d%H%M'` -DVERSIONBUILD=0 -DINSTALLSIZE=$((size/1024)) xemu-native.nsi || exit 1
 ls -l bin/$installer
 
