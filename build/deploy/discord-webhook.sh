@@ -10,6 +10,7 @@ BOT_NAME="XEMU Builder"
 BOT_NAME_FUNNY="XEMU (body-)Builder"
 #BOT_AVATAR="https://travis-ci.org/images/logos/TravisCI-Mascot-1.png"
 BOT_AVATAR="https://lgblgblgb.github.io/xemu/images/xemu-48x48.png"
+AUTHOR_DISCORD_ID="731142195851034704"
 
 echo "[DISCORD] Starting ${BOT_NAME} discord trigger with parameter $1 in directory `pwd` on host `hostname`"
 
@@ -153,7 +154,7 @@ if [ "$TRAVIS_JOB_WEB_URL" != "" ]; then
 	MSG="$MSG and the [build log](<${TRAVIS_JOB_WEB_URL}>)"
 fi
 MSG="${MSG}, built by ${BUILDER_CI}-CI"
-MSG="${MSG}. :calendar: _${BOT_NAME_FUNNY} on behalf of @LGB at ${TIMESTAMP}_"
+MSG="${MSG}. :calendar: _${BOT_NAME_FUNNY} on behalf of <@${AUTHOR_DISCORD_ID}> at ${TIMESTAMP}_"
 
 
 WEBHOOK_DATA='{ "username": "'$BOT_NAME'", "avatar_url": "'$BOT_AVATAR'", "content": "'$MSG'" }'
