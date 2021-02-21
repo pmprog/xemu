@@ -150,15 +150,15 @@ void c64_toggle_joy_emu ( void )
 }
 
 
-Uint8 c64_get_joy_state ( void )
+Uint8 c64_get_joy_state ( int which )
 {
 	return
 			0xE0 |
-			(hid_read_joystick_up    ( 0,  1 ) & (is_mouse_grab() ? hid_read_mouse_button_right(0,  1) :  1)) |
-			hid_read_joystick_down   ( 0,  2 ) |
-			hid_read_joystick_left   ( 0,  4 ) |
-			hid_read_joystick_right  ( 0,  8 ) |
-			(hid_read_joystick_button( 0, 16 ) & (is_mouse_grab() ? hid_read_mouse_button_left (0, 16) : 16))
+			(hid_read_joystick_up    ( which - 1, 0,  1 ) & (is_mouse_grab() ? hid_read_mouse_button_right(0,  1) :  1)) |
+			hid_read_joystick_down   ( which - 1, 0,  2 ) |
+			hid_read_joystick_left   ( which - 1, 0,  4 ) |
+			hid_read_joystick_right  ( which - 1, 0,  8 ) |
+			(hid_read_joystick_button( which - 1, 0, 16 ) & (is_mouse_grab() ? hid_read_mouse_button_left (0, 16) : 16))
 	;
 }
 

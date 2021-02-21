@@ -102,11 +102,11 @@ static SDL_AudioDeviceID audio;
 static int primo_read_joy ( int on, int off )
 {
 	switch (joy.step) {
-		case 0:	return hid_read_joystick_left	(on, off);
-		case 1:	return hid_read_joystick_down	(on, off);
-		case 2:	return hid_read_joystick_right	(on, off);
-		case 3:	return hid_read_joystick_up	(on, off);
-		case 4:	return hid_read_joystick_button	(on, off);
+		case 0:	return hid_read_joystick_left	(0, on, off);
+		case 1:	return hid_read_joystick_down	(0, on, off);
+		case 2:	return hid_read_joystick_right	(0, on, off);
+		case 3:	return hid_read_joystick_up	(0, on, off);
+		case 4:	return hid_read_joystick_button	(0, on, off);
 		default:return off;
 	}
 }

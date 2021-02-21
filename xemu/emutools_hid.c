@@ -37,10 +37,10 @@ int hid_show_osd_keys = 0;
 
 static int mouse_delta_x;
 static int mouse_delta_y;
-static unsigned int hid_state;
 
 #define MAX_JOYSTICKS			16
 
+static unsigned int hid_state[MAX_JOYSTICKS];
 static SDL_Joystick *joysticks[MAX_JOYSTICKS];
 
 #define JOYSTATE_UP			 1
@@ -71,19 +71,19 @@ int hid_key_event ( SDL_Scancode key, int pressed )
 							exit(0);
 						break;
 					case XEMU_EVENT_FAKE_JOY_UP:
-						if (pressed) hid_state |= JOYSTATE_UP;     else hid_state &= ~JOYSTATE_UP;
+						if (pressed) hid_state[0] |= JOYSTATE_UP;     else hid_state[0] &= ~JOYSTATE_UP;
 						break;
 					case XEMU_EVENT_FAKE_JOY_DOWN:
-						if (pressed) hid_state |= JOYSTATE_DOWN;   else hid_state &= ~JOYSTATE_DOWN;
+						if (pressed) hid_state[0] |= JOYSTATE_DOWN;   else hid_state[0] &= ~JOYSTATE_DOWN;
 						break;
 					case XEMU_EVENT_FAKE_JOY_LEFT:
-						if (pressed) hid_state |= JOYSTATE_LEFT;   else hid_state &= ~JOYSTATE_LEFT;
+						if (pressed) hid_state[0] |= JOYSTATE_LEFT;   else hid_state[0] &= ~JOYSTATE_LEFT;
 						break;
 					case XEMU_EVENT_FAKE_JOY_RIGHT:
-						if (pressed) hid_state |= JOYSTATE_RIGHT;  else hid_state &= ~JOYSTATE_RIGHT;
+						if (pressed) hid_state[0] |= JOYSTATE_RIGHT;  else hid_state[0] &= ~JOYSTATE_RIGHT;
 						break;
 					case XEMU_EVENT_FAKE_JOY_FIRE:
-						if (pressed) hid_state |= JOYSTATE_BUTTON; else hid_state &= ~JOYSTATE_BUTTON;
+						if (pressed) hid_state[0] |= JOYSTATE_BUTTON; else hid_state[0] &= ~JOYSTATE_BUTTON;
 						break;
 					case XEMU_EVENT_TOGGLE_FULLSCREEN:
 						if (pressed)
@@ -115,7 +115,8 @@ void hid_reset_events ( int burn )
 	KBD_CLEAR_MATRIX();	// set keyboard matrix to default state (unpressed for all positions)
 	mouse_delta_x = 0;
 	mouse_delta_y = 0;
-	hid_state = 0;
+	hid_state[0] = 0;
+	hid_state[1] = 0;
 	if (burn)
 		xemu_drop_events();
 }
@@ -316,9 +317,9 @@ void hid_mouse_button_event ( int button, int pressed )
 	else
 		return;
 	if (pressed)
-		hid_state |= mask;
+		hid_state[0] |= mask;
 	else
-		hid_state &= ~mask;
+		hid_state[0] &= ~mask;
 }
 
 
@@ -340,80 +341,80 @@ void hid_joystick_device_event ( int which , int is_attach )
 			joysticks[which] = NULL;
 			DEBUG("HID: joystick device #%d has been removed." NL, which);
 			// This is needed to avoid "stuck" joystick state if removed in that state ...
-			hid_state &= ~(JOYSTATE_UP | JOYSTATE_DOWN | JOYSTATE_LEFT | JOYSTATE_RIGHT | JOYSTATE_BUTTON);
+			hid_state[which] &= ~(JOYSTATE_UP | JOYSTATE_DOWN | JOYSTATE_LEFT | JOYSTATE_RIGHT | JOYSTATE_BUTTON);
 		}
 	}
 }
 
 
-void hid_joystick_motion_event ( int is_vertical, int value )
+void hid_joystick_motion_event ( int which, int is_vertical, int value )
 {
 	if (is_vertical) {
-		hid_state &= ~(JOYSTATE_UP | JOYSTATE_DOWN);
+		hid_state[which] &= ~(JOYSTATE_UP | JOYSTATE_DOWN);
 		if (value < -10000)
-			hid_state |= JOYSTATE_UP;
+			hid_state[which] |= JOYSTATE_UP;
 		else if (value > 10000)
-			hid_state |= JOYSTATE_DOWN;
+			hid_state[which] |= JOYSTATE_DOWN;
 	} else {
-		hid_state &= ~(JOYSTATE_LEFT | JOYSTATE_RIGHT);
+		hid_state[which] &= ~(JOYSTATE_LEFT | JOYSTATE_RIGHT);
 		if (value < -10000)
-			hid_state |= JOYSTATE_LEFT;
+			hid_state[which] |= JOYSTATE_LEFT;
 		else if (value > 10000)
-			hid_state |= JOYSTATE_RIGHT;
+			hid_state[which] |= JOYSTATE_RIGHT;
 	}
 }
 
 
-void hid_joystick_button_event ( int pressed )
+void hid_joystick_button_event ( int which, int pressed )
 {
 	if (pressed)
-		hid_state |=  JOYSTATE_BUTTON;
+		hid_state[which] |=  JOYSTATE_BUTTON;
 	else
-		hid_state &= ~JOYSTATE_BUTTON;
+		hid_state[which] &= ~JOYSTATE_BUTTON;
 }
 
 
-void hid_joystick_hat_event ( int value )
+void hid_joystick_hat_event ( int which, int value )
 {
-	hid_state &= ~(JOYSTATE_UP | JOYSTATE_DOWN | JOYSTATE_LEFT | JOYSTATE_RIGHT);
+	hid_state[which] &= ~(JOYSTATE_UP | JOYSTATE_DOWN | JOYSTATE_LEFT | JOYSTATE_RIGHT);
 	if (value & SDL_HAT_UP)
-		hid_state |= JOYSTATE_UP;
+		hid_state[which] |= JOYSTATE_UP;
 	if (value & SDL_HAT_DOWN)
-		hid_state |= JOYSTATE_DOWN;
+		hid_state[which] |= JOYSTATE_DOWN;
 	if (value & SDL_HAT_LEFT)
-		hid_state |= JOYSTATE_LEFT;
+		hid_state[which] |= JOYSTATE_LEFT;
 	if (value & SDL_HAT_RIGHT)
-		hid_state |= JOYSTATE_RIGHT;
+		hid_state[which] |= JOYSTATE_RIGHT;
 }
 
 
-int hid_read_joystick_up ( int on, int off )
+int hid_read_joystick_up ( int which, int on, int off )
 {
-	return (hid_state & JOYSTATE_UP) ? on : off;
+	return (hid_state[which] & JOYSTATE_UP) ? on : off;
 }
 
 
-int hid_read_joystick_down ( int on, int off )
+int hid_read_joystick_down ( int which, int on, int off )
 {
-	return (hid_state & JOYSTATE_DOWN) ? on : off;
+	return (hid_state[which] & JOYSTATE_DOWN) ? on : off;
 }
 
 
-int hid_read_joystick_left ( int on, int off )
+int hid_read_joystick_left ( int which, int on, int off )
 {
-	return (hid_state & JOYSTATE_LEFT) ? on : off;
+	return (hid_state[which] & JOYSTATE_LEFT) ? on : off;
 }
 
 
-int hid_read_joystick_right ( int on, int off )
+int hid_read_joystick_right ( int which, int on, int off )
 {
-	return (hid_state & JOYSTATE_RIGHT) ? on : off;
+	return (hid_state[which] & JOYSTATE_RIGHT) ? on : off;
 }
 
 
-int hid_read_joystick_button ( int on, int off )
+int hid_read_joystick_button ( int which, int on, int off )
 {
-	return (hid_state & JOYSTATE_BUTTON) ? on : off;
+	return (hid_state[which] & JOYSTATE_BUTTON) ? on : off;
 }
 
 
@@ -443,13 +444,13 @@ int hid_read_mouse_rel_y ( int min, int max )
 
 int hid_read_mouse_button_left ( int on, int off )
 {
-	return (hid_state & MOUSESTATE_BUTTON_LEFT) ? on : off;
+	return (hid_state[0] & MOUSESTATE_BUTTON_LEFT) ? on : off;
 }
 
 
 int hid_read_mouse_button_right ( int on, int off )
 {
-	return (hid_state & MOUSESTATE_BUTTON_RIGHT) ? on : off;
+	return (hid_state[0] & MOUSESTATE_BUTTON_RIGHT) ? on : off;
 }
 
 
@@ -502,14 +503,14 @@ int hid_handle_one_sdl_event ( SDL_Event *event )
 			break;
 		case SDL_JOYBUTTONDOWN:
 		case SDL_JOYBUTTONUP:
-			hid_joystick_button_event(event->type == SDL_JOYBUTTONDOWN);
+			hid_joystick_button_event(event->jbutton.which, event->type == SDL_JOYBUTTONDOWN);
 			break;
 		case SDL_JOYHATMOTION:
-			hid_joystick_hat_event(event->jhat.value);
+			hid_joystick_hat_event(event->jhat.which, event->jhat.value);
 			break;
 		case SDL_JOYAXISMOTION:
 			if (event->jaxis.axis < 2)
-				hid_joystick_motion_event(event->jaxis.axis, event->jaxis.value);
+				hid_joystick_motion_event(event->jaxis.which, event->jaxis.axis, event->jaxis.value);
 			break;
 		case SDL_MOUSEMOTION:
 			if (is_mouse_grab())

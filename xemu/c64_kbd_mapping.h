@@ -45,7 +45,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA */
 extern const struct KeyMappingDefault c64_key_map[];
 extern int joystick_emu;
 
-extern Uint8 c64_get_joy_state  ( void );
+extern Uint8 c64_get_joy_state  ( int which );
 extern void  c64_toggle_joy_emu ( void );
 
 static XEMU_INLINE Uint8 c64_keyboard_read_on_CIA1_B ( Uint8 kbsel_a, Uint8 effect_b, Uint8 joy_state
