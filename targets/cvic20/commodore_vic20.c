@@ -436,10 +436,10 @@ static Uint8 via1_ina ( Uint8 mask )
 {
 	// joystick state (RIGHT direction is not handled here though)
 	return
-		hid_read_joystick_left  (0, 1 << 4) |
-		hid_read_joystick_up    (0, 1 << 2) |
-		hid_read_joystick_down  (0, 1 << 3) |
-		hid_read_joystick_button(0, 1 << 5)
+		hid_read_joystick_left  (0, 0, 1 << 4) |
+		hid_read_joystick_up    (0, 0, 1 << 2) |
+		hid_read_joystick_down  (0, 0, 1 << 3) |
+		hid_read_joystick_button(0, 0, 1 << 5)
 	;
 }
 
@@ -447,7 +447,7 @@ static Uint8 via1_ina ( Uint8 mask )
 static Uint8 via2_inb ( Uint8 mask )
 {
 	// Port-B in VIA2 is used (temporary with DDR-B set to input) to scan joystick direction 'RIGHT'
-	return hid_read_joystick_right(0x7F, 0xFF);
+	return hid_read_joystick_right(0, 0x7F, 0xFF);
 }
 
 
